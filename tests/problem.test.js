@@ -1,4 +1,4 @@
-const {problem} = require('../../problem')
+const {problem} = require('../src/problem')
 
 describe('Happy users should be', function() {
     it('with rows 5 columns 2 and users 8', function() {
