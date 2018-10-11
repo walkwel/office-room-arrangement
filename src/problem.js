@@ -1,177 +1,65 @@
-module.exports.problem = (rows, coloums, users) => {
+module.exports.problem = (rows, columns, users) => {
   // validate parameters
-  if (!rows, !coloums, typeof users === 'undefined') {
-    console.log(rows, coloums, users)
+  if (!rows, !columns, typeof users === 'undefined') {
     throw 'invalid data'
   }
   // validate rows and columns length
-  if (!rows || !coloums || (rows < 0 || coloums < 0)) {
+  if (!rows || !columns || (rows < 0 || columns < 0)) {
     throw 'invalid parameters'
   }
   // validate passed users not be greater then required positions
-  if (rows * coloums < users) {
+  if (rows * columns < users) {
     throw 'invalid users'
   }
-  const unhappy1 = fillAlternate(rows, coloums, users);
-  const unhappy2 = fillAlternate2(rows, coloums, users);
-  const final = Math.min(unhappy1, unhappy2);
-  return final;
-}
-
-
-
-function fillInitial(row, coloum) {
-  let arr = new Array(row);
-  for (i = 0; i < row; i++) {
-    arr[i] = new Array(coloum);
-    for (j = 0; j < coloum; j++) {
-      arr[i][j] = "0";
-    }
-  }
-  return arr;
-}
-function fillInBetween(row, coloum, arr, u, unhappy) {
-  for (i = 0; i < row; i++) {
-    for (j = 0; j < coloum; j++) {
-      if (arr[i][j] == "0" && u > 0) {
-        arr[i][j] = "1";
-        u--;
-        unhappy += 4;
-      }
-    }
-  }
-  return unhappy;
-}
-function fillCorners(arr, row, coloum, userCorners, unhappyCorners) {
-  if (arr[0][0] === "0" && userCorners > 0) {
-    arr[0][0] = "1";
-    userCorners--;
-    unhappyCorners += row == 1 ? 1 : 2;
-  }
-
-  if (arr[row - 1][0] === "0" && userCorners > 0) {
-    arr[row - 1][0] = "1";
-    userCorners--;
-    unhappyCorners += coloum == 1 ? 1 : 2;
-  }
-
-  if (arr[0][coloum - 1] === "0" && userCorners > 0) {
-    arr[0][coloum - 1] = "1";
-    userCorners--;
-    unhappyCorners += row == 1 ? 1 : 2;
-  }
-
-  if (arr[row - 1][coloum - 1] === "0" && userCorners > 0) {
-    arr[row - 1][coloum - 1] = "1";
-    userCorners--;
-    unhappyCorners += coloum == 1 ? 1 : 2;
-  }
-  return { unhappyCorners, userCorners };
-}
-function fillSides(arr, row, coloum, userSides, unhappySides) {
-  for (j = 0; j < coloum; j++) {
-    if (userSides == 0) {
-      break;
-    }
-    if (arr[0][j] === "0" && userSides > 0) {
-      arr[0][j] = "1";
-      userSides--;
-      unhappySides += row == 1 ? 2 : 3;
-    }
-    if (arr[row - 1][j] === "0" && userSides > 0) {
-      arr[row - 1][j] = "1";
-      userSides--;
-      unhappySides += row == 1 ? 2 : 3;
-    }
-  }
-  for (i = 0; i < row; i++) {
-    if (userSides == 0) {
-      break;
-    }
-    if (arr[i][0] === "0" && userSides > 0) {
-      arr[i][0] = "1";
-      userSides--;
-      unhappySides += coloum == 1 ? 2 : 3;
-    }
-    if (arr[i][coloum - 1] === "0" && userSides > 0) {
-      arr[i][coloum - 1] = "1";
-      userSides--;
-      unhappySides += coloum == 1 ? 2 : 3;
-    }
-  }
-  return { unhappySides, userSides };
-}
-function fillAlternate(row, coloum, user) {
-  let unhappy = 0;
-  let arr = fillInitial(row, coloum);
-  let u = user;
-  let cnt = 1;
-  for (i = 0; i < row; i++) {
-    for (j = 0; j < coloum; j++) {
-      if (cnt % 2 == 0) {
-        arr[i][j] = "1";
-        u--;
-      }
-      cnt++;
-      if (u == 0) {
-        break;
-      }
-    }
-  }
-  let { unhappyCorners, userCorners } = fillCorners(
-    arr,
-    row,
-    coloum,
-    u,
-    unhappy
-  );
-  unhappy = unhappyCorners;
-  u = userCorners;
-  if (u > 0) {
-    let { unhappySides, userSides } = fillSides(arr, row, coloum, u, unhappy);
-    unhappy = unhappySides;
-    u = userSides;
-  }
-  if (u > 0) {
-    unhappy = fillInBetween(row, coloum, arr, u, unhappy);
-  }
+  const unhappy = findUnhappyUser(rows, columns, users);
   return unhappy;
 }
 
-function fillAlternate2(row, coloum, user) {
-  let unhappy = 0;
-  let arr = fillInitial(row, coloum);
-  let u = user;
-  let cnt = 1;
-  for (i = 0; i < row; i++) {
-    for (j = 0; j < coloum; j++) {
-      if (cnt % 2 != 0) {
-        arr[i][j] = "1";
-        u--;
-      }
-      cnt++;
+const findUnhappyUser = (rows, coloums, users) => {
+  let n = rows * coloums; // total number of seats
 
-      if (u == 0) {
-        break;
-      }
+  /* check whether number of users are less or half as compared to seats */
+  if(users <= Math.ceil(n/2)){
+    return 0;
+  }
+
+  /* for one row or one column */
+  if(rows==1 || coloums ==1){
+    return (n%2==0) ? 2*(users - Math.ceil(n/2) - 1)+1 : 2*(users - Math.ceil(n/2));
+  }
+  
+  let emptySideSeats= (rows/2)*2 + (coloums - 2);
+  
+  if(n%2 == 0){
+    // In case of even no. of seats
+    let halfNumberOfSeat= Math.ceil(n/2);
+    let CornerSeats =  halfNumberOfSeat+2;
+    if( users <= CornerSeats){
+      return 2*(users - halfNumberOfSeat);
+    }
+    if ((users > CornerSeats) && (users - halfNumberOfSeat) <= emptySideSeats ){
+      emptySideSeats = emptySideSeats - 2;
+      return 3*(users - CornerSeats) + 4;
+    }
+    if((users > CornerSeats) && (users - halfNumberOfSeat) > emptySideSeats ){
+      emptySideSeats = emptySideSeats - 2;
+      return 3*(emptySideSeats) + 4 + 4*(users - CornerSeats -emptySideSeats);
+    }
+  } 
+  else {
+    // In case of odd no. of seats
+    let CornerSeats = (rows%2!=0 && coloums%2!=0)?4:2;
+    if(users === Math.ceil(n/2)+1){
+      return 3;
+    }
+    if((users - Math.floor(n/2)) <= CornerSeats){
+      return 2*(users - Math.floor(n/2));
+    }
+    if((users - Math.floor(n/2)) <= (emptySideSeats)){
+      return 3*(users - Math.floor(n/2)- CornerSeats)+ 2*CornerSeats;
+    }
+    if((users -Math.floor(n/2)) > emptySideSeats){
+      return 3*(emptySideSeats-CornerSeats) + 2*CornerSeats + 4*(users - Math.floor(n/2) -emptySideSeats) ;
     }
   }
-  let { unhappyCorners, userCorners } = fillCorners(
-    arr,
-    row,
-    coloum,
-    u,
-    unhappy
-  );
-  unhappy = unhappyCorners;
-  u = userCorners;
-  if (u > 0) {
-    let { unhappySides, userSides } = fillSides(arr, row, coloum, u, unhappy);
-    unhappy = unhappySides;
-    u = userSides;
-  }
-  if (u > 0) {
-    unhappy = fillInBetween(row, coloum, arr, u, unhappy);
-  }
-  return unhappy;
 }
